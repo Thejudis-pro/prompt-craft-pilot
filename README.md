@@ -1,73 +1,74 @@
-# Welcome to your Lovable project
 
-## Project info
+# PromptPilot
 
-**URL**: https://lovable.dev/projects/60a43126-9197-4df0-9218-af1aae28a34c
+PromptPilot is a developer-focused web application designed to help users generate high-quality prompts for AI coding tools like Lovable, Cursor, and Cody. By structuring user inputs into well-formatted prompts, PromptPilot helps developers get more accurate and useful results from AI coding assistants.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- **Structured Prompt Creation**: Input project details through a clean, intuitive form
+- **Preset Templates**: Start with templates for common use cases (SaaS, Portfolio, E-commerce, etc.)
+- **Editable Output**: Review and refine generated prompts before use
+- **Export Options**: Copy to clipboard or download as markdown files
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
+- **Dark Mode Interface**: Easy on the eyes for developers who prefer dark themes
 
-**Use Lovable**
+## Getting Started
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/60a43126-9197-4df0-9218-af1aae28a34c) and start prompting.
+### Prerequisites
 
-Changes made via Lovable will be committed automatically to this repo.
+- Node.js (v16 or newer)
+- npm or yarn
 
-**Use your preferred IDE**
+### Installation
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/prompt-pilot.git
+cd prompt-pilot
 ```
 
-**Edit a file directly in GitHub**
+2. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+3. Start the development server:
+```bash
+npm run dev
+# or
+yarn dev
+```
 
-**Use GitHub Codespaces**
+4. Open your browser and navigate to `http://localhost:8080`
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Usage
 
-## What technologies are used for this project?
+1. Select a template or start from scratch
+2. Fill in the required fields:
+   - Project purpose
+   - Target audience
+   - Core features (3-5)
+   - Style/design preferences
+   - Optional: tech stack or AI tool specifics
+3. Click "Generate Prompt" to create your prompt
+4. Review, edit, and copy the generated prompt
+5. Paste into your preferred AI coding tool
 
-This project is built with:
+## Tech Stack
 
-- Vite
-- TypeScript
 - React
-- shadcn-ui
+- TypeScript
 - Tailwind CSS
+- shadcn/ui components
+- Vite
 
-## How can I deploy this project?
+## License
 
-Simply open [Lovable](https://lovable.dev/projects/60a43126-9197-4df0-9218-af1aae28a34c) and click on Share -> Publish.
+MIT
 
-## Can I connect a custom domain to my Lovable project?
+## Acknowledgements
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- Inspired by tools like Lovable, Cursor, and Cody
+- UI design influenced by Vercel and modern developer tools
