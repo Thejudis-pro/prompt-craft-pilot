@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -51,8 +51,6 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
   };
 
   const handleSelectPreset = (template: PromptTemplate) => {
-    // This is a simplified implementation to parse the template
-    // In a real app, you might want a more sophisticated approach
     setPurpose('Build a new application');
     setAudience('Developers and designers');
     setFeatures(['Feature one', 'Feature two', 'Feature three']);
@@ -63,7 +61,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
   return (
     <Card className="glass-card w-full">
       <CardContent className="pt-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 text-center">
           <PresetSelector onSelectPreset={handleSelectPreset} />
           
           <div className="space-y-4">
@@ -76,6 +74,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
                 value={purpose}
                 onChange={(e) => setPurpose(e.target.value)}
                 required
+                className={purpose ? "" : "placeholder:text-muted-foreground/50"}
               />
             </div>
             
@@ -88,6 +87,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
                 value={audience}
                 onChange={(e) => setAudience(e.target.value)}
                 required
+                className={audience ? "" : "placeholder:text-muted-foreground/50"}
               />
             </div>
             
@@ -103,6 +103,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
                       value={feature}
                       onChange={(e) => handleFeatureChange(index, e.target.value)}
                       required={index < 3}
+                      className={feature ? "" : "placeholder:text-muted-foreground/50"}
                     />
                     {index >= 3 && (
                       <Button 
@@ -139,7 +140,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
                 value={design}
                 onChange={(e) => setDesign(e.target.value)}
                 required
-                className="min-h-[80px]"
+                className={`min-h-[80px] ${design ? "" : "placeholder:text-muted-foreground/50"}`}
               />
             </div>
             
@@ -151,6 +152,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
                 placeholder="E.g., React, Next.js, or specific AI tools" 
                 value={tech}
                 onChange={(e) => setTech(e.target.value)}
+                className={tech ? "" : "placeholder:text-muted-foreground/50"}
               />
             </div>
           </div>

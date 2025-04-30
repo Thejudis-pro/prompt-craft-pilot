@@ -21,7 +21,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
+    <div className="min-h-screen flex flex-col">
       <Header />
       
       <main className="flex-1 container py-8">
@@ -29,7 +29,7 @@ const Index = () => {
           <h2 className="text-3xl font-bold mb-2">
             Craft the perfect prompts for AI tools
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-white/90">
             Use PromptPilot to generate effective prompts for Lovable, Cursor, Cody, and other AI coding assistants.
           </p>
         </div>
@@ -44,8 +44,8 @@ const Index = () => {
               <PromptOutput prompt={generatedPrompt} />
             ) : (
               <div className="flex items-center justify-center h-full">
-                <div className="text-center p-8 border border-dashed border-muted-foreground/20 rounded-lg">
-                  <p className="text-muted-foreground">
+                <div className="text-center p-8 border border-white/20 rounded-lg backdrop-blur-xl bg-white/10">
+                  <p className="text-white/70">
                     Fill out the form and generate your prompt to see the results here
                   </p>
                 </div>
@@ -55,9 +55,9 @@ const Index = () => {
         </div>
       </main>
       
-      <footer className="py-6 border-t border-border/10">
+      <footer className="py-6 border-t border-white/10">
         <div className="container">
-          <p className="text-center text-sm text-muted-foreground">
+          <p className="text-center text-sm text-white/60">
             PromptPilot - Create better prompts for AI coding tools
           </p>
         </div>

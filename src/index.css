@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -34,7 +34,8 @@
   }
   
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-gradient-to-br from-[#43cea2] to-[#185a9d] text-foreground antialiased min-h-screen;
+    font-family: 'Poppins', sans-serif;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
   }
 
@@ -54,6 +55,6 @@
   }
 
   .glass-card {
-    @apply backdrop-blur-xl bg-white/5 border border-white/10 shadow-lg;
+    @apply backdrop-blur-xl bg-white/10 border border-white/20 shadow-lg;
   }
 }

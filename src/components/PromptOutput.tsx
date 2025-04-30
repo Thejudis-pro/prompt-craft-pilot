@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,7 +15,7 @@ const PromptOutput: React.FC<PromptOutputProps> = ({ prompt }) => {
   const { toast } = useToast();
 
   // Update edited prompt when the input prompt changes
-  React.useEffect(() => {
+  useEffect(() => {
     setEditedPrompt(prompt);
   }, [prompt]);
 
@@ -51,7 +51,7 @@ const PromptOutput: React.FC<PromptOutputProps> = ({ prompt }) => {
   return (
     <Card className="glass-card w-full">
       <CardContent className="pt-6">
-        <div className="space-y-4">
+        <div className="space-y-4 text-center">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-medium">Generated Prompt</h3>
             <div className="flex space-x-2">
@@ -74,7 +74,7 @@ const PromptOutput: React.FC<PromptOutputProps> = ({ prompt }) => {
             </div>
           </div>
 
-          <div className="bg-secondary/50 rounded-md p-4 overflow-x-auto">
+          <div className="bg-secondary/30 backdrop-blur-sm rounded-md p-4 overflow-x-auto text-left">
             <pre className="whitespace-pre-wrap text-sm">{prompt}</pre>
           </div>
           
@@ -85,7 +85,7 @@ const PromptOutput: React.FC<PromptOutputProps> = ({ prompt }) => {
             <Textarea
               value={editedPrompt}
               onChange={(e) => setEditedPrompt(e.target.value)}
-              className="min-h-[200px] font-mono text-sm"
+              className="min-h-[200px] font-mono text-sm text-left"
             />
           </div>
         </div>
