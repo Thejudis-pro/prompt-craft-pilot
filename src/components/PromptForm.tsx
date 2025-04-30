@@ -51,11 +51,56 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
   };
 
   const handleSelectPreset = (template: PromptTemplate) => {
-    setPurpose('Build a new application');
-    setAudience('Developers and designers');
-    setFeatures(['Feature one', 'Feature two', 'Feature three']);
-    setDesign('Modern, clean interface');
-    setTech('React, Tailwind CSS');
+    // Extract information from template to prefill form
+    const purposeMatch = template.template.match(/\[main purpose\]/);
+    const audienceMatch = template.template.match(/\[target audience\]/);
+    const designMatch = template.template.match(/\[design preference\]/);
+    
+    // Set form values based on template type
+    switch(template.id) {
+      case "saas":
+        setPurpose("a SaaS application");
+        setAudience("business professionals and teams");
+        setFeatures(["User authentication and accounts", "Dashboard with analytics", "Subscription management"]);
+        setDesign("modern and professional");
+        setTech("React and Node.js");
+        break;
+      case "portfolio":
+        setPurpose("a personal portfolio website");
+        setAudience("potential employers and clients");
+        setFeatures(["Project showcase", "About me section", "Contact form"]);
+        setDesign("clean and visually appealing");
+        setTech("React with Tailwind CSS");
+        break;
+      case "ecommerce":
+        setPurpose("an e-commerce platform");
+        setAudience("online shoppers");
+        setFeatures(["Product catalog", "Shopping cart", "Secure checkout"]);
+        setDesign("user-friendly and conversion-focused");
+        setTech("React, Next.js, and a headless CMS");
+        break;
+      case "dashboard":
+        setPurpose("an analytics dashboard");
+        setAudience("data analysts and business managers");
+        setFeatures(["Data visualization", "Customizable widgets", "Report generation"]);
+        setDesign("clean and information-focused");
+        setTech("React with D3.js or Recharts");
+        break;
+      case "mobile":
+        setPurpose("a mobile application");
+        setAudience("smartphone users");
+        setFeatures(["Responsive mobile UI", "Offline capabilities", "Push notifications"]);
+        setDesign("mobile-first and touch-friendly");
+        setTech("React Native or Flutter");
+        break;
+      default:
+        // Generic values if no specific template is matched
+        setPurpose("a new application");
+        setAudience("end users");
+        setFeatures(["Feature one", "Feature two", "Feature three"]);
+        setDesign("modern and clean");
+        setTech("");
+    }
   };
 
   return (
