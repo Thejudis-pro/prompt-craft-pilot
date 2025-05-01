@@ -11,7 +11,7 @@
   font-weight: 400;
 
   color-scheme: dark;
-  color: rgba(255, 255, 255, 0.87);
+  color: rgba(255, 255, 255, 0.95);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -29,15 +29,15 @@ body {
 }
 
 .glass-card {
-  backdrop-filter: blur(10px);
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 /* Add subtle hover effect to the cards */
 .glass-card:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.2);
   transition: background-color 0.3s ease;
 }
 
@@ -55,6 +55,27 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Style placeholder text */
 ::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.6);
   opacity: 1;
+}
+
+/* Enhance button visibility */
+button[type="submit"] {
+  background: linear-gradient(90deg, #43cea2 0%, #185a9d 100%);
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  border: none;
+  letter-spacing: 0.02em;
+}
+
+button[type="submit"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Improve toggle visibility */
+[data-state="on"] {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+  font-weight: 500;
 }

@@ -21,7 +21,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
   const [features, setFeatures] = useState<string[]>(['', '', '']);
   const [design, setDesign] = useState('');
   const [tech, setTech] = useState('');
-  const [enhancementMode, setEnhancementMode] = useState<'minimal' | 'enhanced'>('enhanced');
+  const [enhancementMode, setEnhancementMode] = useState<'minimal' | 'enhanced' | 'advanced'>('enhanced');
   const [featureSuggestions, setFeatureSuggestions] = useState<string[]>([]);
   const [techSuggestions, setTechSuggestions] = useState<string>('');
 
@@ -286,7 +286,10 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
             </div>
           </div>
           
-          <Button type="submit" className="w-full">
+          <Button 
+            type="submit" 
+            className="w-full text-white py-5 hover:bg-primary/90"
+          >
             Generate Prompt
           </Button>
         </form>
