@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,8 +10,17 @@ import SmartSuggestions from './SmartSuggestions';
 import { PromptTemplate } from '../lib/promptTemplates';
 import { generatePrompt, suggestFeatures, suggestTechStack } from '../lib/generatePrompt';
 
+interface FormData {
+  purpose: string;
+  audience: string;
+  features: string[];
+  design: string;
+  tech: string;
+  enhancementMode: 'minimal' | 'enhanced' | 'advanced';
+}
+
 interface PromptFormProps {
-  onGeneratePrompt: (prompt: string) => void;
+  onGeneratePrompt: (prompt: string, data: FormData) => void;
 }
 
 const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
@@ -81,15 +89,17 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const prompt = generatePrompt({
+    const formData: FormData = {
       purpose,
       audience,
       features,
       design,
       tech,
       enhancementMode
-    });
-    onGeneratePrompt(prompt);
+    };
+    
+    const prompt = generatePrompt(formData);
+    onGeneratePrompt(prompt, formData);
   };
 
   const handleSelectPreset = (template: PromptTemplate) => {

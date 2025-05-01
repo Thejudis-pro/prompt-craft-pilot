@@ -4,11 +4,22 @@ import Header from '@/components/Header';
 import PromptForm from '@/components/PromptForm';
 import PromptOutput from '@/components/PromptOutput';
 
+interface FormData {
+  purpose: string;
+  audience: string;
+  features: string[];
+  design: string;
+  tech: string;
+  enhancementMode: 'minimal' | 'enhanced' | 'advanced';
+}
+
 const Index = () => {
   const [generatedPrompt, setGeneratedPrompt] = useState('');
+  const [formData, setFormData] = useState<FormData | null>(null);
 
-  const handleGeneratePrompt = (prompt: string) => {
+  const handleGeneratePrompt = (prompt: string, data: FormData) => {
     setGeneratedPrompt(prompt);
+    setFormData(data);
     
     // Scroll to the output section if on mobile
     if (window.innerWidth < 768) {
@@ -41,7 +52,9 @@ const Index = () => {
           
           <div id="output-section" className="flex flex-col space-y-6">
             {generatedPrompt ? (
-              <PromptOutput prompt={generatedPrompt} />
+              <PromptOutput 
+                prompt={generatedPrompt} 
+              />
             ) : (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center p-8 border border-white/20 rounded-lg backdrop-blur-xl bg-white/10">

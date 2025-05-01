@@ -1,31 +1,59 @@
 
 import React from 'react';
-import { LayoutDashboard } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Bookmark, LogOut, LogIn } from 'lucide-react';
 
-const Header: React.FC = () => {
+const Header = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
   return (
-    <header className="w-full py-6">
-      <div className="container flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div className="bg-primary/20 p-2 rounded-md">
-            <LayoutDashboard className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold">PromptPilot</h1>
-            <p className="text-xs text-muted-foreground">
-              Craft perfect prompts for AI coding tools
-            </p>
-          </div>
-        </div>
-        <div>
-          <a 
-            href="https://github.com" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-sm text-muted-foreground hover:text-primary transition-colors"
-          >
-            Documentation
-          </a>
+    <header className="border-b border-white/10 backdrop-blur-md bg-black/20 sticky top-0 z-10">
+      <div className="container flex items-center justify-between h-16">
+        <Link to="/" className="text-xl font-bold">
+          PromptPilot
+        </Link>
+        
+        <div className="flex items-center gap-2">
+          {user ? (
+            <>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/saved-prompts')}
+                className="flex items-center gap-1"
+              >
+                <Bookmark className="w-4 h-4" />
+                <span className="hidden md:inline">Saved Prompts</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleSignOut}
+                className="flex items-center gap-1"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden md:inline">Sign Out</span>
+              </Button>
+            </>
+          ) : (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate('/auth')}
+              className="flex items-center gap-1"
+            >
+              <LogIn className="w-4 h-4" />
+              <span className="hidden md:inline">Sign In</span>
+            </Button>
+          )}
         </div>
       </div>
     </header>
