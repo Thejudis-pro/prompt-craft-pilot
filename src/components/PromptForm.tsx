@@ -1,12 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import PresetSelector from './PresetSelector';
+import PromptTuningModes from './PromptTuningModes';
+import SmartSuggestions from './SmartSuggestions';
 import { PromptTemplate } from '../lib/promptTemplates';
-import { generatePrompt } from '../lib/generatePrompt';
+import { generatePrompt, suggestFeatures, suggestTechStack } from '../lib/generatePrompt';
 
 interface PromptFormProps {
   onGeneratePrompt: (prompt: string) => void;
@@ -18,6 +20,44 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
   const [features, setFeatures] = useState<string[]>(['', '', '']);
   const [design, setDesign] = useState('');
   const [tech, setTech] = useState('');
+  const [enhancementMode, setEnhancementMode] = useState<'minimal' | 'enhanced'>('enhanced');
+  const [featureSuggestions, setFeatureSuggestions] = useState<string[]>([]);
+  const [techSuggestions, setTechSuggestions] = useState<string>('');
+
+  // Generate smart suggestions when inputs change
+  useEffect(() => {
+    // Only generate suggestions if we have meaningful input
+    if (purpose.trim().length > 3 && audience.trim().length > 3) {
+      const suggestions = suggestFeatures(purpose, audience);
+      
+      // Filter out suggestions that are already in the features array
+      const newSuggestions = suggestions.filter(suggestion => 
+        !features.some(feature => 
+          feature.toLowerCase().includes(suggestion.toLowerCase()) || 
+          suggestion.toLowerCase().includes(feature.toLowerCase())
+        )
+      );
+      
+      setFeatureSuggestions(newSuggestions.slice(0, 3)); // Limit to 3 suggestions
+    } else {
+      setFeatureSuggestions([]);
+    }
+  }, [purpose, audience, features]);
+
+  // Generate tech stack suggestions
+  useEffect(() => {
+    // Only suggest tech if we have features and purpose
+    if (
+      purpose.trim().length > 3 && 
+      features.filter(f => f.trim() !== '').length > 0 &&
+      tech.trim() === '' // Only suggest if user hasn't specified tech
+    ) {
+      const suggestion = suggestTechStack(purpose, features.filter(f => f.trim() !== ''));
+      setTechSuggestions(suggestion);
+    } else {
+      setTechSuggestions('');
+    }
+  }, [purpose, features, tech]);
 
   const handleFeatureChange = (index: number, value: string) => {
     const newFeatures = [...features];
@@ -45,7 +85,8 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
       audience,
       features,
       design,
-      tech
+      tech,
+      enhancementMode
     });
     onGeneratePrompt(prompt);
   };
@@ -103,11 +144,34 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
     }
   };
 
+  const handleSelectSuggestion = (suggestion: string) => {
+    // Find an empty feature slot or replace the last one
+    const emptyIndex = features.findIndex(feature => feature.trim() === '');
+    if (emptyIndex !== -1) {
+      handleFeatureChange(emptyIndex, suggestion);
+    } else if (features.length < 5) {
+      setFeatures([...features, suggestion]);
+    } else {
+      const newFeatures = [...features];
+      newFeatures[features.length - 1] = suggestion;
+      setFeatures(newFeatures);
+    }
+  };
+
+  const handleSelectTechSuggestion = () => {
+    if (techSuggestions) {
+      setTech(techSuggestions);
+      setTechSuggestions('');
+    }
+  };
+
   return (
     <Card className="glass-card w-full">
       <CardContent className="pt-6">
         <form onSubmit={handleSubmit} className="space-y-6 text-center">
           <PresetSelector onSelectPreset={handleSelectPreset} />
+          
+          <PromptTuningModes value={enhancementMode} onChange={setEnhancementMode} />
           
           <div className="space-y-4">
             <div>
@@ -173,6 +237,11 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
                     Add Feature
                   </Button>
                 )}
+                
+                <SmartSuggestions 
+                  suggestions={featureSuggestions} 
+                  onSelectSuggestion={handleSelectSuggestion} 
+                />
               </div>
             </div>
             
@@ -199,6 +268,20 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
                 onChange={(e) => setTech(e.target.value)}
                 className={tech ? "" : "placeholder:text-muted-foreground/50"}
               />
+              {techSuggestions && (
+                <div className="mt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSelectTechSuggestion}
+                    className="text-xs py-1 px-2 h-auto bg-white/5 hover:bg-white/10 flex gap-1 items-center"
+                  >
+                    <Lightbulb className="h-3 w-3" />
+                    <span>Suggested: {techSuggestions}</span>
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
           
