@@ -79,3 +79,19 @@ button[type="submit"]:hover {
   background-color: rgba(255, 255, 255, 0.3) !important;
   font-weight: 500;
 }
+
+/* Add dark gray background for dropdown menus */
+[role="menu"],
+[role="listbox"],
+[data-radix-popper-content-wrapper] > div {
+  background-color: #222222 !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Improve visibility of dropdown items on hover */
+[role="menuitem"]:hover,
+[role="option"]:hover {
+  background-color: #333333 !important;
+}
+
