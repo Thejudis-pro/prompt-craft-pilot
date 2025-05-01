@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
+import { Lightbulb } from 'lucide-react';
 import PresetSelector from './PresetSelector';
 import PromptTuningModes from './PromptTuningModes';
 import SmartSuggestions from './SmartSuggestions';
