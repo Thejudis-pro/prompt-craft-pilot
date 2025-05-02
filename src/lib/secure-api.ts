@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -13,6 +12,8 @@ const DEFAULT_RATE_LIMITS: Record<string, RateLimitConfig> = {
   'prompt_save': { maxRequests: 10, windowMs: 60 * 1000 }, // 10 per minute
   'prompt_generation': { maxRequests: 20, windowMs: 60 * 1000 }, // 20 per minute
   'auth': { maxRequests: 5, windowMs: 60 * 1000 }, // 5 per minute
+  'fetch_prompts': { maxRequests: 20, windowMs: 60 * 1000 }, // 20 per minute
+  'delete_prompt': { maxRequests: 10, windowMs: 60 * 1000 }, // 10 per minute
 };
 
 // Track operation counts
@@ -91,7 +92,7 @@ export async function securePromptFetch() {
 export function useSecureApi() {
   const { toast } = useToast();
   
-  const executeSecure = async (operationType: string, operation: () => Promise<any>) => {
+  const executeSecure = async <T,>(operationType: string, operation: () => Promise<T> | any): Promise<T> => {
     try {
       // Check rate limit
       if (!checkRateLimit(operationType)) {
@@ -100,11 +101,27 @@ export function useSecureApi() {
           description: "Please slow down and try again later.",
           variant: "destructive",
         });
-        return { error: new Error("Rate limit exceeded") };
+        throw new Error("Rate limit exceeded");
       }
       
-      // Execute the operation
-      return await operation();
+      // Execute the operation - handle both Promise and non-Promise returns
+      const result = operation();
+      
+      // If the result is already a Promise, return it
+      if (result instanceof Promise) {
+        return result;
+      }
+      
+      // If it's a Supabase query builder (has .then but is not a Promise), convert to Promise
+      if (typeof result?.then === 'function') {
+        return new Promise<T>((resolve, reject) => {
+          result.then(resolve).catch(reject);
+        });
+      }
+      
+      // Otherwise, wrap in Promise
+      return Promise.resolve(result as T);
+      
     } catch (error: any) {
       // Log the error
       console.error(`Error in ${operationType}:`, error);
@@ -115,7 +132,7 @@ export function useSecureApi() {
         variant: "destructive",
       });
       
-      return { error };
+      return Promise.reject(error);
     }
   };
   

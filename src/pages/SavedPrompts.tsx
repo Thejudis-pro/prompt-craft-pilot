@@ -33,7 +33,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { generateCSRFToken } from '@/lib/csrf';
+import { generateCSRFToken, validateCSRFToken } from '@/lib/csrf';
 
 interface SavedPrompt {
   id: string;
@@ -73,12 +73,12 @@ const SavedPrompts = () => {
       setError(null);
       
       try {
-        const { data, error } = await executeSecure('fetch_prompts', () => 
-          supabase
+        const { data, error } = await executeSecure('fetch_prompts', () => {
+          return supabase
             .from('saved_prompts')
             .select('*')
-            .order('created_at', { ascending: false })
-        );
+            .order('created_at', { ascending: false });
+        });
 
         if (error) throw error;
         setPrompts(data || []);
@@ -108,7 +108,7 @@ const SavedPrompts = () => {
     if (!promptToDelete) return;
     
     // Validate CSRF token
-    if (localStorage.getItem('csrf_token') !== csrfToken) {
+    if (!validateCSRFToken(csrfToken)) {
       toast({
         title: "Security error",
         description: "Invalid request token. Please try again.",
@@ -119,12 +119,12 @@ const SavedPrompts = () => {
     }
     
     try {
-      const { error } = await executeSecure('delete_prompt', () => 
-        supabase
+      const { error } = await executeSecure('delete_prompt', () => {
+        return supabase
           .from('saved_prompts')
           .delete()
-          .eq('id', promptToDelete)
-      );
+          .eq('id', promptToDelete);
+      });
 
       if (error) throw error;
       
