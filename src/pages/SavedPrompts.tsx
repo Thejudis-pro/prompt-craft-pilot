@@ -73,15 +73,16 @@ const SavedPrompts = () => {
       setError(null);
       
       try {
-        const { data, error } = await executeSecure('fetch_prompts', () => {
+        // Fixed: Properly typing the supabase response
+        const response = await executeSecure<{ data: SavedPrompt[] | null, error: Error | null }>('fetch_prompts', () => {
           return supabase
             .from('saved_prompts')
             .select('*')
             .order('created_at', { ascending: false });
         });
 
-        if (error) throw error;
-        setPrompts(data || []);
+        if (response.error) throw response.error;
+        setPrompts(response.data || []);
       } catch (error: any) {
         console.error("Error fetching prompts:", error);
         setError(error.message || "Failed to load saved prompts");
@@ -119,14 +120,15 @@ const SavedPrompts = () => {
     }
     
     try {
-      const { error } = await executeSecure('delete_prompt', () => {
+      // Fixed: Properly typing the supabase response
+      const response = await executeSecure<{ error: Error | null }>('delete_prompt', () => {
         return supabase
           .from('saved_prompts')
           .delete()
           .eq('id', promptToDelete);
       });
 
-      if (error) throw error;
+      if (response.error) throw response.error;
       
       setPrompts(prompts.filter(prompt => prompt.id !== promptToDelete));
       toast({
