@@ -5,12 +5,39 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import SavedPrompts from "./pages/SavedPrompts";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Security improvements for React Query
+      retry: (failureCount, error: any) => {
+        // Don't retry on 401/403 errors
+        if (error?.response?.status === 401 || error?.response?.status === 403) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: true,
+    },
+  },
+});
+
+// Set Content Security Policy
+const setContentSecurityPolicy = () => {
+  const meta = document.createElement('meta');
+  meta.httpEquiv = 'Content-Security-Policy';
+  meta.content = "default-src 'self'; script-src 'self'; connect-src 'self' https://eohmfnlakvoqftkzmrtz.supabase.co; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; frame-src 'none';";
+  document.head.appendChild(meta);
+};
+
+// Execute CSP setup
+setContentSecurityPolicy();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -22,7 +49,14 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/saved-prompts" element={<SavedPrompts />} />
+            <Route 
+              path="/saved-prompts" 
+              element={
+                <ProtectedRoute>
+                  <SavedPrompts />
+                </ProtectedRoute>
+              } 
+            />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

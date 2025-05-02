@@ -1,8 +1,16 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
+
+// Define types for security related actions and events
+type SecurityEventType = 'login_success' | 'login_failed' | 'signup_success' | 'signup_failed' | 'logout';
+
+interface SecurityEvent {
+  type: SecurityEventType;
+  timestamp: Date;
+  metadata?: Record<string, any>;
+}
 
 type AuthContextType = {
   user: User | null;
@@ -14,6 +22,19 @@ type AuthContextType = {
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Create a secure log of security events
+const logSecurityEvent = (event: SecurityEvent): void => {
+  const existingLogs = JSON.parse(localStorage.getItem('security_logs') || '[]');
+  // Keep only the last 50 events to prevent storage overflow
+  const updatedLogs = [...existingLogs, event].slice(-50);
+  localStorage.setItem('security_logs', JSON.stringify(updatedLogs));
+  
+  // Log to console in development environment only
+  if (import.meta.env.DEV) {
+    console.info('Security event:', event);
+  }
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -28,6 +49,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         setLoading(false);
+        
+        // Log auth events
+        if (event === 'SIGNED_IN') {
+          logSecurityEvent({
+            type: 'login_success',
+            timestamp: new Date(),
+            metadata: { userId: currentSession?.user?.id }
+          });
+        } else if (event === 'SIGNED_OUT') {
+          logSecurityEvent({
+            type: 'logout',
+            timestamp: new Date()
+          });
+        }
       }
     );
 
@@ -41,6 +76,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
+  // Implement secure session timeout
+  useEffect(() => {
+    if (session) {
+      // Auto logout after 30 minutes of inactivity
+      let inactivityTimer: number;
+      
+      const resetInactivityTimer = () => {
+        window.clearTimeout(inactivityTimer);
+        inactivityTimer = window.setTimeout(async () => {
+          toast({
+            title: "Session expired",
+            description: "You've been logged out due to inactivity",
+          });
+          await supabase.auth.signOut();
+        }, 30 * 60 * 1000); // 30 minutes
+      };
+      
+      // Initial timer setup
+      resetInactivityTimer();
+      
+      // Reset timer on user activity
+      const activityEvents = ['mousedown', 'keypress', 'scroll', 'touchstart'];
+      activityEvents.forEach(event => {
+        window.addEventListener(event, resetInactivityTimer);
+      });
+      
+      return () => {
+        window.clearTimeout(inactivityTimer);
+        activityEvents.forEach(event => {
+          window.removeEventListener(event, resetInactivityTimer);
+        });
+      };
+    }
+  }, [session, toast]);
+
   const signUp = async (email: string, password: string) => {
     try {
       const { error } = await supabase.auth.signUp({
@@ -48,7 +118,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
       });
       
-      if (error) throw error;
+      if (error) {
+        logSecurityEvent({
+          type: 'signup_failed',
+          timestamp: new Date(),
+          metadata: { email, error: error.message }
+        });
+        throw error;
+      }
+      
+      logSecurityEvent({
+        type: 'signup_success',
+        timestamp: new Date(),
+        metadata: { email }
+      });
+      
       toast({
         title: "Account created",
         description: "Please check your email to verify your account.",
@@ -70,7 +154,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
       });
       
-      if (error) throw error;
+      if (error) {
+        logSecurityEvent({
+          type: 'login_failed',
+          timestamp: new Date(),
+          metadata: { email, error: error.message }
+        });
+        throw error;
+      }
     } catch (error: any) {
       toast({
         title: "Error",

@@ -10,9 +10,9 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { securePromptSave, sanitizeInput } from '@/lib/secure-api';
 
 interface SavePromptModalProps {
   open: boolean;
@@ -38,7 +38,12 @@ const SavePromptModal: React.FC<SavePromptModalProps> = ({
   const { toast } = useToast();
   const { user } = useAuth();
 
+  // Rate limiting
+  const [lastSaveAttempt, setLastSaveAttempt] = useState(0);
+  const SAVE_COOLDOWN_MS = 2000; // 2 seconds between save attempts
+
   const handleSave = async () => {
+    // Basic input validation
     if (!name.trim()) {
       toast({
         title: "Name required",
@@ -57,12 +62,25 @@ const SavePromptModal: React.FC<SavePromptModalProps> = ({
       return;
     }
 
+    // Apply rate limiting
+    const now = Date.now();
+    if (now - lastSaveAttempt < SAVE_COOLDOWN_MS) {
+      toast({
+        title: "Too many requests",
+        description: "Please wait before trying again",
+        variant: "destructive",
+      });
+      return;
+    }
+    setLastSaveAttempt(now);
+
     setIsSaving(true);
 
     try {
-      const { error } = await supabase.from('saved_prompts').insert({
+      // Use the secure API wrapper
+      const { error } = await securePromptSave({
         user_id: user.id,
-        name,
+        name: name,
         purpose: promptData.purpose,
         audience: promptData.audience,
         features: promptData.features,
@@ -90,6 +108,14 @@ const SavePromptModal: React.FC<SavePromptModalProps> = ({
     }
   };
 
+  // Handle input change with sanitization
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Limit input length to prevent abuse
+    if (e.target.value.length <= 100) {
+      setName(e.target.value);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -104,7 +130,9 @@ const SavePromptModal: React.FC<SavePromptModalProps> = ({
             <Input
               placeholder="My awesome prompt"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={handleNameChange}
+              maxLength={100}
+              aria-label="Prompt name"
             />
           </div>
         </div>
