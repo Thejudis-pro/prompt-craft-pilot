@@ -3,9 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Copy, Clipboard, Save } from 'lucide-react';
+import { Copy, Clipboard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import SavePromptModal from './SavePromptModal';
 
 interface PromptOutputProps {
   prompt: string;
@@ -13,7 +12,6 @@ interface PromptOutputProps {
 
 const PromptOutput: React.FC<PromptOutputProps> = ({ prompt }) => {
   const [editedPrompt, setEditedPrompt] = useState(prompt);
-  const [saveModalOpen, setSaveModalOpen] = useState(false);
   const { toast } = useToast();
 
   // Update edited prompt when the input prompt changes
@@ -46,29 +44,6 @@ const PromptOutput: React.FC<PromptOutputProps> = ({ prompt }) => {
     });
   };
 
-  const handleSaveClick = () => {
-    toast({
-      title: "Save feature available after signing in",
-      description: "The save feature will be available in the full version",
-    });
-    // We're not opening the modal since auth is removed
-  };
-
-  // Extract form data from the current context to save
-  const getFormData = () => {
-    // This is a simplified version - you might need to adjust this based on how
-    // your data is actually structured in your application
-    return {
-      purpose: '',  // These would need to be passed in or obtained from context
-      audience: '',
-      features: [''],
-      design: '',
-      tech: '',
-      enhancementMode: 'enhanced',
-      generatedPrompt: editedPrompt
-    };
-  };
-
   if (!prompt) {
     return null;
   }
@@ -96,14 +71,6 @@ const PromptOutput: React.FC<PromptOutputProps> = ({ prompt }) => {
                 <Clipboard className="h-4 w-4 mr-2" />
                 Download
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleSaveClick}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Save
-              </Button>
             </div>
           </div>
 
@@ -123,12 +90,6 @@ const PromptOutput: React.FC<PromptOutputProps> = ({ prompt }) => {
           </div>
         </div>
       </CardContent>
-      
-      <SavePromptModal 
-        open={saveModalOpen} 
-        onOpenChange={setSaveModalOpen}
-        promptData={getFormData()}
-      />
     </Card>
   );
 };

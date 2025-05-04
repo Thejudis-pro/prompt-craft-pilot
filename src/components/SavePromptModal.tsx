@@ -26,6 +26,7 @@ interface SavePromptModalProps {
   };
 }
 
+// This component is preserved but not used anymore in the application
 const SavePromptModal: React.FC<SavePromptModalProps> = ({
   open,
   onOpenChange,
@@ -49,8 +50,7 @@ const SavePromptModal: React.FC<SavePromptModalProps> = ({
     setIsSaving(true);
 
     try {
-      // Mock saving behavior since auth is removed
-      // Simulate a delay
+      // Mock saving behavior to localStorage
       await new Promise(resolve => setTimeout(resolve, 800));
       
       toast({

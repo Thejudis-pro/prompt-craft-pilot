@@ -1,11 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
-import { useSecureApi } from '@/lib/secure-api';
-import { generateCSRFToken, validateCSRFToken } from '@/lib/csrf';
 
 interface SavedPrompt {
   id: string;
@@ -24,37 +19,21 @@ export function useSavedPrompts() {
   const [prompts, setPrompts] = useState<SavedPrompt[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const { executeSecure } = useSecureApi();
   
-  // CSRF and delete dialog state
+  // Local state for dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [promptToDelete, setPromptToDelete] = useState<string | null>(null);
-  const [csrfToken, setCsrfToken] = useState('');
 
   useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-
     const fetchPrompts = async () => {
       setLoading(true);
       setError(null);
       
       try {
-        // Fixed: Properly typing the supabase response
-        const response = await executeSecure<{ data: SavedPrompt[] | null, error: Error | null }>('fetch_prompts', () => {
-          return supabase
-            .from('saved_prompts')
-            .select('*')
-            .order('created_at', { ascending: false });
-        });
-
-        if (response.error) throw response.error;
-        setPrompts(response.data || []);
+        // Get prompts from localStorage instead of Supabase
+        const savedPrompts = JSON.parse(localStorage.getItem('savedPrompts') || '[]');
+        setPrompts(savedPrompts);
       } catch (error: any) {
         console.error("Error fetching prompts:", error);
         setError(error.message || "Failed to load saved prompts");
@@ -69,40 +48,23 @@ export function useSavedPrompts() {
     };
 
     fetchPrompts();
-  }, [user, navigate, toast, executeSecure]);
+  }, [toast]);
 
   const confirmDelete = (id: string) => {
     setPromptToDelete(id);
-    setCsrfToken(generateCSRFToken());
     setDeleteDialogOpen(true);
   };
   
   const handleDelete = async () => {
     if (!promptToDelete) return;
     
-    // Validate CSRF token
-    if (!validateCSRFToken(csrfToken)) {
-      toast({
-        title: "Security error",
-        description: "Invalid request token. Please try again.",
-        variant: "destructive",
-      });
-      setDeleteDialogOpen(false);
-      return;
-    }
-    
     try {
-      // Fixed: Properly typing the supabase response
-      const response = await executeSecure<{ error: Error | null }>('delete_prompt', () => {
-        return supabase
-          .from('saved_prompts')
-          .delete()
-          .eq('id', promptToDelete);
-      });
-
-      if (response.error) throw response.error;
+      // Delete from localStorage
+      const savedPrompts = JSON.parse(localStorage.getItem('savedPrompts') || '[]');
+      const updatedPrompts = savedPrompts.filter((prompt: SavedPrompt) => prompt.id !== promptToDelete);
+      localStorage.setItem('savedPrompts', JSON.stringify(updatedPrompts));
       
-      setPrompts(prompts.filter(prompt => prompt.id !== promptToDelete));
+      setPrompts(updatedPrompts);
       toast({
         title: "Prompt deleted",
         description: "Your prompt has been deleted successfully",
