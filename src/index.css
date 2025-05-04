@@ -30,14 +30,14 @@ body {
 
 .glass-card {
   backdrop-filter: blur(12px);
-  background-color: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.25);  /* Increased opacity from 0.15 to 0.25 */
+  border: 1px solid rgba(255, 255, 255, 0.4);   /* Increased opacity from 0.3 to 0.4 */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);   /* Increased opacity from 0.2 to 0.25 */
 }
 
 /* Add subtle hover effect to the cards */
 .glass-card:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.3);  /* Increased opacity from 0.2 to 0.3 */
   transition: background-color 0.3s ease;
 }
 
@@ -94,4 +94,3 @@ button[type="submit"]:hover {
 [role="option"]:hover {
   background-color: #333333 !important;
 }
-

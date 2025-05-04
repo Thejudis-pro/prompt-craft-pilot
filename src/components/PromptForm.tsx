@@ -89,10 +89,14 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Filter out empty features before generating the prompt
+    const filteredFeatures = features.filter(feature => feature.trim() !== '');
+    
     const formData: FormData = {
       purpose,
       audience,
-      features,
+      features: filteredFeatures,
       design,
       tech,
       enhancementMode
@@ -159,7 +163,9 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
     // Find an empty feature slot or replace the last one
     const emptyIndex = features.findIndex(feature => feature.trim() === '');
     if (emptyIndex !== -1) {
-      handleFeatureChange(emptyIndex, suggestion);
+      const newFeatures = [...features];
+      newFeatures[emptyIndex] = suggestion;
+      setFeatures(newFeatures);
     } else if (features.length < 5) {
       setFeatures([...features, suggestion]);
     } else {
