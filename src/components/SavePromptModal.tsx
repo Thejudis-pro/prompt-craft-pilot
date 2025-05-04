@@ -11,8 +11,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-import { securePromptSave, sanitizeInput } from '@/lib/secure-api';
 
 interface SavePromptModalProps {
   open: boolean;
@@ -36,11 +34,6 @@ const SavePromptModal: React.FC<SavePromptModalProps> = ({
   const [name, setName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
-
-  // Rate limiting
-  const [lastSaveAttempt, setLastSaveAttempt] = useState(0);
-  const SAVE_COOLDOWN_MS = 2000; // 2 seconds between save attempts
 
   const handleSave = async () => {
     // Basic input validation
@@ -53,49 +46,28 @@ const SavePromptModal: React.FC<SavePromptModalProps> = ({
       return;
     }
 
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to save prompts",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Apply rate limiting
-    const now = Date.now();
-    if (now - lastSaveAttempt < SAVE_COOLDOWN_MS) {
-      toast({
-        title: "Too many requests",
-        description: "Please wait before trying again",
-        variant: "destructive",
-      });
-      return;
-    }
-    setLastSaveAttempt(now);
-
     setIsSaving(true);
 
     try {
-      // Use the secure API wrapper
-      const { error } = await securePromptSave({
-        user_id: user.id,
-        name: name,
-        purpose: promptData.purpose,
-        audience: promptData.audience,
-        features: promptData.features,
-        design: promptData.design,
-        tech: promptData.tech || '',
-        enhancement_mode: promptData.enhancementMode,
-        generated_prompt: promptData.generatedPrompt,
-      });
-
-      if (error) throw error;
-
+      // Mock saving behavior since auth is removed
+      // Simulate a delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
       toast({
-        title: "Prompt saved",
-        description: "Your prompt has been saved successfully",
+        title: "Prompt saved locally",
+        description: "Your prompt has been saved to local storage",
       });
+      
+      // Save to localStorage as an example
+      const savedPrompts = JSON.parse(localStorage.getItem('savedPrompts') || '[]');
+      savedPrompts.push({
+        id: Date.now().toString(),
+        name: name,
+        ...promptData,
+        created_at: new Date().toISOString()
+      });
+      localStorage.setItem('savedPrompts', JSON.stringify(savedPrompts));
+      
       onOpenChange(false);
     } catch (error: any) {
       toast({
@@ -122,7 +94,7 @@ const SavePromptModal: React.FC<SavePromptModalProps> = ({
         <DialogHeader>
           <DialogTitle>Save Prompt</DialogTitle>
           <DialogDescription>
-            Give your prompt a name to save it to your account
+            Give your prompt a name to save it locally
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">

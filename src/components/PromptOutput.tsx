@@ -5,9 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Copy, Clipboard, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
 import SavePromptModal from './SavePromptModal';
-import { useNavigate } from 'react-router-dom';
 
 interface PromptOutputProps {
   prompt: string;
@@ -17,8 +15,6 @@ const PromptOutput: React.FC<PromptOutputProps> = ({ prompt }) => {
   const [editedPrompt, setEditedPrompt] = useState(prompt);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
-  const navigate = useNavigate();
 
   // Update edited prompt when the input prompt changes
   useEffect(() => {
@@ -51,16 +47,11 @@ const PromptOutput: React.FC<PromptOutputProps> = ({ prompt }) => {
   };
 
   const handleSaveClick = () => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to save prompts",
-        variant: "destructive",
-      });
-      navigate('/auth');
-      return;
-    }
-    setSaveModalOpen(true);
+    toast({
+      title: "Save feature available after signing in",
+      description: "The save feature will be available in the full version",
+    });
+    // We're not opening the modal since auth is removed
   };
 
   // Extract form data from the current context to save
