@@ -9,6 +9,7 @@ import PromptTuningModes from './PromptTuningModes';
 import SmartSuggestions from './SmartSuggestions';
 import { PromptTemplate } from '../lib/promptTemplates';
 import { generatePrompt, suggestFeatures, suggestTechStack } from '../lib/generatePrompt';
+import { useToast } from '@/hooks/use-toast';
 
 interface FormData {
   purpose: string;
@@ -32,6 +33,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
   const [enhancementMode, setEnhancementMode] = useState<'minimal' | 'enhanced' | 'advanced'>('enhanced');
   const [featureSuggestions, setFeatureSuggestions] = useState<string[]>([]);
   const [techSuggestions, setTechSuggestions] = useState<string>('');
+  const { toast } = useToast();
 
   // Generate smart suggestions when inputs change
   useEffect(() => {
@@ -90,8 +92,27 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate form
+    if (!purpose.trim() || !audience.trim() || !design.trim()) {
+      toast({
+        title: "Missing information",
+        description: "Please fill out all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Filter out empty features before generating the prompt
     const filteredFeatures = features.filter(feature => feature.trim() !== '');
+    
+    if (filteredFeatures.length === 0) {
+      toast({
+        title: "Missing features",
+        description: "Please add at least one feature",
+        variant: "destructive",
+      });
+      return;
+    }
     
     const formData: FormData = {
       purpose,
@@ -102,8 +123,17 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
       enhancementMode
     };
     
-    const prompt = generatePrompt(formData);
-    onGeneratePrompt(prompt, formData);
+    try {
+      const prompt = generatePrompt(formData);
+      onGeneratePrompt(prompt, formData);
+    } catch (error) {
+      console.error("Error generating prompt:", error);
+      toast({
+        title: "Error",
+        description: "There was a problem generating your prompt",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSelectPreset = (template: PromptTemplate) => {

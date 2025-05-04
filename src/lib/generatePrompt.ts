@@ -1,4 +1,3 @@
-
 interface PromptInputs {
   purpose: string;
   audience: string;
@@ -103,8 +102,7 @@ export function generatePrompt(inputs: PromptInputs): string {
       prompt += `Implement using ${tech} with these architectural principles:\n`;
       prompt += `- Component-based architecture for maximum reusability and maintenance\n`;
       prompt += `- Clear separation of concerns (data, presentation, business logic)\n`;
-      prompt += `- Optimized state management to minimize rerenders and data fetching\n`;
-      prompt += `- Comprehensive error handling and graceful degradation\n\n`;
+      prompt += `- Optimized state management to minimize rerenders and data fetching\n\n`;
     } else {
       prompt += `### Recommended Technology Stack\n`;
       prompt += `Based on the requirements, consider these technologies:\n`;
