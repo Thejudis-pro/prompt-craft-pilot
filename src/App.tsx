@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import SavedPrompts from "./pages/SavedPrompts";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,12 +25,12 @@ const queryClient = new QueryClient({
   },
 });
 
-// Set Content Security Policy
+// Update CSP to allow Google Fonts
 const setContentSecurityPolicy = () => {
   if (typeof document !== 'undefined') {
     const meta = document.createElement('meta');
     meta.httpEquiv = 'Content-Security-Policy';
-    meta.content = "default-src 'self'; script-src 'self'; connect-src 'self' https://eohmfnlakvoqftkzmrtz.supabase.co; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; frame-src 'none';";
+    meta.content = "default-src 'self'; script-src 'self'; connect-src 'self' https://eohmfnlakvoqftkzmrtz.supabase.co; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src 'none';";
     document.head.appendChild(meta);
   }
 };
@@ -47,6 +48,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/saved-prompts" element={<SavedPrompts />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
