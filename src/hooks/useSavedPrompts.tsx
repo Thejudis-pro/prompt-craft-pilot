@@ -31,7 +31,7 @@ export function useSavedPrompts() {
       setError(null);
       
       try {
-        // Get prompts from localStorage instead of Supabase
+        // Get prompts from localStorage
         const savedPrompts = JSON.parse(localStorage.getItem('savedPrompts') || '[]');
         setPrompts(savedPrompts);
       } catch (error: any) {

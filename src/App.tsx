@@ -26,14 +26,18 @@ const queryClient = new QueryClient({
 
 // Set Content Security Policy
 const setContentSecurityPolicy = () => {
-  const meta = document.createElement('meta');
-  meta.httpEquiv = 'Content-Security-Policy';
-  meta.content = "default-src 'self'; script-src 'self'; connect-src 'self' https://eohmfnlakvoqftkzmrtz.supabase.co; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; frame-src 'none';";
-  document.head.appendChild(meta);
+  if (typeof document !== 'undefined') {
+    const meta = document.createElement('meta');
+    meta.httpEquiv = 'Content-Security-Policy';
+    meta.content = "default-src 'self'; script-src 'self'; connect-src 'self' https://eohmfnlakvoqftkzmrtz.supabase.co; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; frame-src 'none';";
+    document.head.appendChild(meta);
+  }
 };
 
-// Execute CSP setup
-setContentSecurityPolicy();
+// Execute CSP setup only in browser environments
+if (typeof window !== 'undefined') {
+  setContentSecurityPolicy();
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
