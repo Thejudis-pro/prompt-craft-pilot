@@ -1,251 +1,144 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import Header from '@/components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/AuthContext';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { generateCSRFToken } from '@/lib/csrf';
 import { useToast } from '@/hooks/use-toast';
 
-// Enhanced password requirements
-const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string()
-    .min(8, { message: "Password must be at least 8 characters long" })
-    .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
-    .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
-    .regex(/[0-9]/, { message: "Password must contain at least one number" })
-    .regex(/[^A-Za-z0-9]/, { message: "Password must contain at least one special character" }),
-  csrfToken: z.string(),
-});
-
-const Auth = () => {
-  const { user, signIn, signUp } = useAuth();
+const Auth: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
-  const [loginAttempts, setLoginAttempts] = useState(0);
-  const [lockoutUntil, setLockoutUntil] = useState<Date | null>(null);
   const { toast } = useToast();
 
-  // Generate CSRF token on component mount
-  const [csrfToken, setCsrfToken] = useState('');
-  
-  useEffect(() => {
-    setCsrfToken(generateCSRFToken());
-  }, []);
-
-  useEffect(() => {
-    if (user) {
-      navigate('/');
-    }
-
-    // Check lockout status
-    const storedLockout = localStorage.getItem('auth_lockout');
-    if (storedLockout) {
-      const lockoutTime = new Date(storedLockout);
-      if (lockoutTime > new Date()) {
-        setLockoutUntil(lockoutTime);
-      } else {
-        // Lockout expired
-        localStorage.removeItem('auth_lockout');
-        setLoginAttempts(0);
-      }
-    }
-  }, [user, navigate]);
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-      csrfToken: csrfToken,
-    },
-  });
-
-  // Update the form values when CSRF token changes
-  useEffect(() => {
-    form.setValue('csrfToken', csrfToken);
-  }, [csrfToken, form]);
-
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    // Check if account is locked
-    if (lockoutUntil && lockoutUntil > new Date()) {
-      const minutesLeft = Math.ceil((lockoutUntil.getTime() - new Date().getTime()) / (60 * 1000));
+  const handleSubmit = async (type: 'signin' | 'signup') => {
+    if (!email || !password) {
       toast({
-        variant: "destructive",
-        title: "Account temporarily locked",
-        description: `Too many failed attempts. Try again in ${minutesLeft} minutes.`
+        title: "Missing fields",
+        description: "Please enter both email and password",
+        variant: "destructive"
       });
       return;
     }
 
-    setIsLoading(true);
+    setIsSubmitting(true);
+
     try {
-      if (activeTab === "login") {
-        await signIn(data.email, data.password);
-        // Reset attempts on success
-        setLoginAttempts(0);
-        localStorage.removeItem('auth_lockout');
+      if (type === 'signin') {
+        await signIn(email, password);
       } else {
-        await signUp(data.email, data.password);
+        await signUp(email, password);
       }
-    } catch (error) {
-      console.error("Authentication error:", error);
       
-      if (activeTab === "login") {
-        // Increase login attempts
-        const newAttempts = loginAttempts + 1;
-        setLoginAttempts(newAttempts);
-        
-        // Implement account lockout after 5 failed attempts
-        if (newAttempts >= 5) {
-          const lockoutTime = new Date();
-          lockoutTime.setMinutes(lockoutTime.getMinutes() + 15); // 15 minute lockout
-          setLockoutUntil(lockoutTime);
-          localStorage.setItem('auth_lockout', lockoutTime.toISOString());
-          
-          toast({
-            variant: "destructive",
-            title: "Account temporarily locked",
-            description: "Too many failed attempts. Try again in 15 minutes."
-          });
-        }
-      }
+      navigate('/');
+    } catch (error) {
+      console.error('Authentication error:', error);
+      // Error is already handled in the auth context
     } finally {
-      setIsLoading(false);
-      // Generate a new CSRF token for the next attempt
-      setCsrfToken(generateCSRFToken());
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <Card className="glass-card w-full max-w-md mx-4">
-        <CardHeader>
-          <CardTitle className="text-center">
-            {activeTab === "login" ? "Sign In" : "Create Account"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {lockoutUntil && lockoutUntil > new Date() ? (
-            <div className="text-center p-4">
-              <p className="text-destructive font-medium">Account temporarily locked</p>
-              <p className="text-muted-foreground">
-                Too many failed login attempts. Please try again later.
-              </p>
-            </div>
-          ) : (
-            <Tabs 
-              value={activeTab} 
-              onValueChange={(value) => setActiveTab(value as "login" | "signup")}
-              className="w-full"
-            >
-              <TabsList className="grid grid-cols-2 mb-6">
-                <TabsTrigger value="login">Login</TabsTrigger>
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      
+      <main className="flex-1 container py-8 flex items-center justify-center">
+        <Card className="w-full max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-center">Welcome to PromptPilot</CardTitle>
+          </CardHeader>
+          
+          <CardContent>
+            <Tabs defaultValue="signin" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="login">
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input placeholder="your.email@example.com" {...field} type="email" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+              <TabsContent value="signin">
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input 
+                      id="email"
+                      type="email" 
+                      placeholder="your@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={isSubmitting}
                     />
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input 
+                      id="password"
+                      type="password" 
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={isSubmitting}
                     />
-                    <input type="hidden" name="csrfToken" value={csrfToken} />
-                    <Button 
-                      type="submit" 
-                      className="w-full" 
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Signing in..." : "Sign In"}
-                    </Button>
-                  </form>
-                </Form>
+                  </div>
+                  
+                  <Button 
+                    className="w-full" 
+                    onClick={() => handleSubmit('signin')}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Signing In...' : 'Sign In'}
+                  </Button>
+                </div>
               </TabsContent>
               
               <TabsContent value="signup">
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input placeholder="your.email@example.com" {...field} type="email" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email">Email</Label>
+                    <Input 
+                      id="signup-email"
+                      type="email" 
+                      placeholder="your@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={isSubmitting}
                     />
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} autoComplete="new-password" />
-                          </FormControl>
-                          <FormMessage className="text-sm">
-                            Password must be at least 8 characters with uppercase, lowercase, number, and special character
-                          </FormMessage>
-                        </FormItem>
-                      )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password">Password</Label>
+                    <Input 
+                      id="signup-password"
+                      type="password" 
+                      placeholder="••••••••" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={isSubmitting}
                     />
-                    <input type="hidden" name="csrfToken" value={csrfToken} />
-                    <Button 
-                      type="submit" 
-                      className="w-full" 
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Creating Account..." : "Create Account"}
-                    </Button>
-                  </form>
-                </Form>
+                    <p className="text-xs text-muted-foreground">Password must be at least 8 characters long</p>
+                  </div>
+                  
+                  <Button 
+                    className="w-full" 
+                    onClick={() => handleSubmit('signup')}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Creating Account...' : 'Create Account'}
+                  </Button>
+                </div>
               </TabsContent>
             </Tabs>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </main>
     </div>
   );
 };
