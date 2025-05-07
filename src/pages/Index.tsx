@@ -35,7 +35,7 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <main className="flex-1 container py-8">
+      <main className="flex-1 container py-8 px-4 mx-auto">
         <div className="mb-8 text-center max-w-2xl mx-auto">
           <h2 className="text-3xl font-bold mb-2">
             Craft the perfect prompts for AI tools
@@ -70,7 +70,7 @@ const Index = () => {
       </main>
       
       <footer className="py-6 border-t border-white/10">
-        <div className="container">
+        <div className="container mx-auto px-4">
           <p className="text-center text-sm text-white/60">
             PromptPilot - Create better prompts for AI coding tools
           </p>

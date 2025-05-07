@@ -30,6 +30,8 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
   const [features, setFeatures] = useState<string[]>(['', '', '']);
   const [design, setDesign] = useState('');
   const [tech, setTech] = useState('');
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [isCustomTemplate, setIsCustomTemplate] = useState(false);
   const [enhancementMode, setEnhancementMode] = useState<'minimal' | 'enhanced' | 'advanced'>('enhanced');
   const [featureSuggestions, setFeatureSuggestions] = useState<string[]>([]);
   const [techSuggestions, setTechSuggestions] = useState<string>('');
@@ -92,6 +94,30 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // For custom template, just use the custom prompt text
+    if (isCustomTemplate) {
+      if (!customPrompt.trim()) {
+        toast({
+          title: "Empty prompt",
+          description: "Please enter your custom prompt",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const formData: FormData = {
+        purpose: "Custom prompt",
+        audience: "Custom",
+        features: ["Custom"],
+        design: "Custom",
+        tech: "",
+        enhancementMode
+      };
+      
+      onGeneratePrompt(customPrompt, formData);
+      return;
+    }
+    
     // Validate form
     if (!purpose.trim() || !audience.trim() || !design.trim()) {
       toast({
@@ -137,6 +163,16 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
   };
 
   const handleSelectPreset = (template: PromptTemplate) => {
+    // Check if custom template is selected
+    if (template.id === "custom") {
+      setIsCustomTemplate(true);
+      setCustomPrompt("");
+      return;
+    }
+    
+    // Reset custom template flag if another template is selected
+    setIsCustomTemplate(false);
+    
     // Extract information from template to prefill form
     const purposeMatch = template.template.match(/\[main purpose\]/);
     const audienceMatch = template.template.match(/\[target audience\]/);
@@ -220,117 +256,132 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
           
           <PromptTuningModes value={enhancementMode} onChange={setEnhancementMode} />
           
-          <div className="space-y-4">
+          {isCustomTemplate ? (
             <div>
               <label className="block text-sm font-medium mb-2">
-                Project Purpose
-              </label>
-              <Input 
-                placeholder="What are you building?" 
-                value={purpose}
-                onChange={(e) => setPurpose(e.target.value)}
-                required
-                className={purpose ? "" : "placeholder:text-muted-foreground/50"}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Target Audience
-              </label>
-              <Input 
-                placeholder="Who will use your application?" 
-                value={audience}
-                onChange={(e) => setAudience(e.target.value)}
-                required
-                className={audience ? "" : "placeholder:text-muted-foreground/50"}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Core Features (3-5)
-              </label>
-              <div className="space-y-3">
-                {features.map((feature, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      placeholder={`Feature ${index + 1}`}
-                      value={feature}
-                      onChange={(e) => handleFeatureChange(index, e.target.value)}
-                      required={index < 3}
-                      className={feature ? "" : "placeholder:text-muted-foreground/50"}
-                    />
-                    {index >= 3 && (
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => handleRemoveFeature(index)}
-                      >
-                        ✕
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                {features.length < 5 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddFeature}
-                    className="w-full"
-                  >
-                    Add Feature
-                  </Button>
-                )}
-                
-                <SmartSuggestions 
-                  suggestions={featureSuggestions} 
-                  onSelectSuggestion={handleSelectSuggestion} 
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Style or Design Preferences
+                Your Custom Prompt
               </label>
               <Textarea 
-                placeholder="Describe your desired look and feel" 
-                value={design}
-                onChange={(e) => setDesign(e.target.value)}
+                placeholder="Write your custom prompt here..." 
+                value={customPrompt}
+                onChange={(e) => setCustomPrompt(e.target.value)}
                 required
-                className={`min-h-[80px] ${design ? "" : "placeholder:text-muted-foreground/50"}`}
+                className="min-h-[200px]"
               />
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Tech Stack or AI Tool (Optional)
-              </label>
-              <Input 
-                placeholder="E.g., React, Next.js, or specific AI tools" 
-                value={tech}
-                onChange={(e) => setTech(e.target.value)}
-                className={tech ? "" : "placeholder:text-muted-foreground/50"}
-              />
-              {techSuggestions && (
-                <div className="mt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSelectTechSuggestion}
-                    className="text-xs py-1 px-2 h-auto bg-white/5 hover:bg-white/10 flex gap-1 items-center"
-                  >
-                    <Lightbulb className="h-3 w-3" />
-                    <span>Suggested: {techSuggestions}</span>
-                  </Button>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Project Purpose
+                </label>
+                <Input 
+                  placeholder="What are you building?" 
+                  value={purpose}
+                  onChange={(e) => setPurpose(e.target.value)}
+                  required
+                  className={purpose ? "" : "placeholder:text-muted-foreground/50"}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Target Audience
+                </label>
+                <Input 
+                  placeholder="Who will use your application?" 
+                  value={audience}
+                  onChange={(e) => setAudience(e.target.value)}
+                  required
+                  className={audience ? "" : "placeholder:text-muted-foreground/50"}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Core Features (3-5)
+                </label>
+                <div className="space-y-3">
+                  {features.map((feature, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        placeholder={`Feature ${index + 1}`}
+                        value={feature}
+                        onChange={(e) => handleFeatureChange(index, e.target.value)}
+                        required={index < 3}
+                        className={feature ? "" : "placeholder:text-muted-foreground/50"}
+                      />
+                      {index >= 3 && (
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handleRemoveFeature(index)}
+                        >
+                          ✕
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  {features.length < 5 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddFeature}
+                      className="w-full"
+                    >
+                      Add Feature
+                    </Button>
+                  )}
+                  
+                  <SmartSuggestions 
+                    suggestions={featureSuggestions} 
+                    onSelectSuggestion={handleSelectSuggestion} 
+                  />
                 </div>
-              )}
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Style or Design Preferences
+                </label>
+                <Textarea 
+                  placeholder="Describe your desired look and feel" 
+                  value={design}
+                  onChange={(e) => setDesign(e.target.value)}
+                  required
+                  className={`min-h-[80px] ${design ? "" : "placeholder:text-muted-foreground/50"}`}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Tech Stack or AI Tool (Optional)
+                </label>
+                <Input 
+                  placeholder="E.g., React, Next.js, or specific AI tools" 
+                  value={tech}
+                  onChange={(e) => setTech(e.target.value)}
+                  className={tech ? "" : "placeholder:text-muted-foreground/50"}
+                />
+                {techSuggestions && (
+                  <div className="mt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSelectTechSuggestion}
+                      className="text-xs py-1 px-2 h-auto bg-white/5 hover:bg-white/10 flex gap-1 items-center"
+                    >
+                      <Lightbulb className="h-3 w-3" />
+                      <span>Suggested: {techSuggestions}</span>
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
           
           <Button 
             type="submit" 

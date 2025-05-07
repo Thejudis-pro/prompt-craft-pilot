@@ -8,6 +8,12 @@ export interface PromptTemplate {
 
 export const promptTemplates: PromptTemplate[] = [
   {
+    id: "custom",
+    name: "Custom Prompt",
+    description: "Create your own prompt from scratch",
+    template: ""
+  },
+  {
     id: "saas",
     name: "SaaS Application",
     description: "Web app with user authentication and dashboard",

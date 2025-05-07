@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
   return (
-    <header className="border-b border-white/10 backdrop-blur-md bg-black/20 sticky top-0 z-10">
-      <div className="container flex items-center justify-between h-16">
+    <header className="border-b border-white/10 backdrop-blur-md bg-black/20 sticky top-0 z-10 w-full">
+      <div className="container flex items-center justify-between h-16 px-4 mx-auto">
         <Link to="/" className="text-xl font-bold">
           PromptPilot
         </Link>
