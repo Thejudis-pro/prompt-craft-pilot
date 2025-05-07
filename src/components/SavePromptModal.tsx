@@ -26,7 +26,6 @@ interface SavePromptModalProps {
   };
 }
 
-// This component is preserved but not used anymore in the application
 const SavePromptModal: React.FC<SavePromptModalProps> = ({
   open,
   onOpenChange,
@@ -50,25 +49,29 @@ const SavePromptModal: React.FC<SavePromptModalProps> = ({
     setIsSaving(true);
 
     try {
-      // Mock saving behavior to localStorage
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      toast({
-        title: "Prompt saved locally",
-        description: "Your prompt has been saved to local storage",
-      });
-      
-      // Save to localStorage as an example
+      // Save to localStorage
       const savedPrompts = JSON.parse(localStorage.getItem('savedPrompts') || '[]');
       savedPrompts.push({
         id: Date.now().toString(),
         name: name,
-        ...promptData,
+        purpose: promptData.purpose,
+        audience: promptData.audience,
+        features: promptData.features,
+        design: promptData.design,
+        tech: promptData.tech || null,
+        enhancement_mode: promptData.enhancementMode,
+        generated_prompt: promptData.generatedPrompt,
         created_at: new Date().toISOString()
       });
       localStorage.setItem('savedPrompts', JSON.stringify(savedPrompts));
       
+      toast({
+        title: "Prompt saved",
+        description: "Your prompt has been saved successfully",
+      });
+      
       onOpenChange(false);
+      setName(''); // Reset the form
     } catch (error: any) {
       toast({
         title: "Error",
@@ -94,7 +97,7 @@ const SavePromptModal: React.FC<SavePromptModalProps> = ({
         <DialogHeader>
           <DialogTitle>Save Prompt</DialogTitle>
           <DialogDescription>
-            Give your prompt a name to save it locally
+            Give your prompt a name to save it for future reference
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -105,13 +108,17 @@ const SavePromptModal: React.FC<SavePromptModalProps> = ({
               onChange={handleNameChange}
               maxLength={100}
               aria-label="Prompt name"
+              autoFocus
             />
           </div>
         </div>
         <DialogFooter>
           <Button
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              setName('');
+              onOpenChange(false);
+            }}
             disabled={isSaving}
           >
             Cancel

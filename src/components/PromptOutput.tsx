@@ -3,15 +3,25 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Copy, Clipboard } from 'lucide-react';
+import { Copy, Clipboard, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import SavePromptModal from '@/components/SavePromptModal';
 
 interface PromptOutputProps {
   prompt: string;
+  formData?: {
+    purpose: string;
+    audience: string;
+    features: string[];
+    design: string;
+    tech: string;
+    enhancementMode: 'minimal' | 'enhanced' | 'advanced';
+  };
 }
 
-const PromptOutput: React.FC<PromptOutputProps> = ({ prompt }) => {
+const PromptOutput: React.FC<PromptOutputProps> = ({ prompt, formData }) => {
   const [editedPrompt, setEditedPrompt] = useState(prompt);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
   const { toast } = useToast();
 
   // Update edited prompt when the input prompt changes
@@ -44,6 +54,10 @@ const PromptOutput: React.FC<PromptOutputProps> = ({ prompt }) => {
     });
   };
 
+  const handleSave = () => {
+    setSaveModalOpen(true);
+  };
+
   if (!prompt) {
     return null;
   }
@@ -71,6 +85,14 @@ const PromptOutput: React.FC<PromptOutputProps> = ({ prompt }) => {
                 <Clipboard className="h-4 w-4 mr-2" />
                 Download
               </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleSave}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save
+              </Button>
             </div>
           </div>
 
@@ -90,6 +112,17 @@ const PromptOutput: React.FC<PromptOutputProps> = ({ prompt }) => {
           </div>
         </div>
       </CardContent>
+
+      {formData && (
+        <SavePromptModal
+          open={saveModalOpen}
+          onOpenChange={setSaveModalOpen}
+          promptData={{
+            ...formData,
+            generatedPrompt: editedPrompt
+          }}
+        />
+      )}
     </Card>
   );
 };

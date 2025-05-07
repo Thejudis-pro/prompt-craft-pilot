@@ -53,7 +53,8 @@ const Index = () => {
           <div id="output-section" className="flex flex-col space-y-6">
             {generatedPrompt ? (
               <PromptOutput 
-                prompt={generatedPrompt} 
+                prompt={generatedPrompt}
+                formData={formData || undefined}
               />
             ) : (
               <div className="flex items-center justify-center h-full">
