@@ -3,13 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
-import { Lightbulb } from 'lucide-react';
+import { Lightbulb, Text, Layout, Pencil } from 'lucide-react';
 import PresetSelector from './PresetSelector';
 import PromptTuningModes from './PromptTuningModes';
 import SmartSuggestions from './SmartSuggestions';
 import { PromptTemplate } from '../lib/promptTemplates';
 import { generatePrompt, suggestFeatures, suggestTechStack } from '../lib/generatePrompt';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface FormData {
   purpose: string;
@@ -35,6 +36,11 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
   const [enhancementMode, setEnhancementMode] = useState<'minimal' | 'enhanced' | 'advanced'>('enhanced');
   const [featureSuggestions, setFeatureSuggestions] = useState<string[]>([]);
   const [techSuggestions, setTechSuggestions] = useState<string>('');
+  const [customFormType, setCustomFormType] = useState<'freeform' | 'guided'>('freeform');
+  const [customTitle, setCustomTitle] = useState('');
+  const [customContext, setCustomContext] = useState('');
+  const [customRequirements, setCustomRequirements] = useState('');
+  const [customPreferences, setCustomPreferences] = useState('');
   const { toast } = useToast();
 
   // Generate smart suggestions when inputs change
@@ -72,6 +78,15 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
     }
   }, [purpose, features, tech]);
 
+  useEffect(() => {
+    if (isCustomTemplate) {
+      // When switching to custom, update the custom prompt based on the selected tab type
+      if (customFormType === 'guided') {
+        generateGuidedCustomPrompt();
+      }
+    }
+  }, [customTitle, customContext, customRequirements, customPreferences, customFormType]);
+
   const handleFeatureChange = (index: number, value: string) => {
     const newFeatures = [...features];
     newFeatures[index] = value;
@@ -91,6 +106,28 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
     }
   };
 
+  const generateGuidedCustomPrompt = () => {
+    let generatedPrompt = '';
+    
+    if (customTitle.trim()) {
+      generatedPrompt += `${customTitle.trim()}\n\n`;
+    }
+    
+    if (customContext.trim()) {
+      generatedPrompt += `Context: ${customContext.trim()}\n\n`;
+    }
+    
+    if (customRequirements.trim()) {
+      generatedPrompt += `Requirements:\n${customRequirements.trim()}\n\n`;
+    }
+    
+    if (customPreferences.trim()) {
+      generatedPrompt += `Preferences:\n${customPreferences.trim()}\n\n`;
+    }
+    
+    setCustomPrompt(generatedPrompt.trim());
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -106,7 +143,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
       }
       
       const formData: FormData = {
-        purpose: "Custom prompt",
+        purpose: customTitle || "Custom prompt",
         audience: "Custom",
         features: ["Custom"],
         design: "Custom",
@@ -167,6 +204,10 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
     if (template.id === "custom") {
       setIsCustomTemplate(true);
       setCustomPrompt("");
+      setCustomTitle("");
+      setCustomContext("");
+      setCustomRequirements("");
+      setCustomPreferences("");
       return;
     }
     
@@ -257,17 +298,89 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
           <PromptTuningModes value={enhancementMode} onChange={setEnhancementMode} />
           
           {isCustomTemplate ? (
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Your Custom Prompt
-              </label>
-              <Textarea 
-                placeholder="Write your custom prompt here..." 
-                value={customPrompt}
-                onChange={(e) => setCustomPrompt(e.target.value)}
-                required
-                className="min-h-[200px]"
-              />
+            <div className="space-y-4">
+              <Tabs value={customFormType} onValueChange={(v) => setCustomFormType(v as 'freeform' | 'guided')} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsTrigger value="freeform" className="flex items-center gap-2">
+                    <Text className="h-4 w-4" />
+                    Freeform
+                  </TabsTrigger>
+                  <TabsTrigger value="guided" className="flex items-center gap-2">
+                    <Layout className="h-4 w-4" />
+                    Guided
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="freeform" className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Your Custom Prompt
+                    </label>
+                    <Textarea 
+                      placeholder="Write your custom prompt here... Be as specific as possible about what you want to create." 
+                      value={customPrompt}
+                      onChange={(e) => setCustomPrompt(e.target.value)}
+                      className="min-h-[250px]"
+                    />
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="guided" className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Title / Subject
+                    </label>
+                    <Input 
+                      placeholder="What are you trying to build or accomplish?" 
+                      value={customTitle}
+                      onChange={(e) => setCustomTitle(e.target.value)}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Context
+                    </label>
+                    <Textarea 
+                      placeholder="Background information, current situation, or constraints..." 
+                      value={customContext}
+                      onChange={(e) => setCustomContext(e.target.value)}
+                      className="min-h-[80px]"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Requirements
+                    </label>
+                    <Textarea 
+                      placeholder="Specific needs, must-haves, or key functionalities..." 
+                      value={customRequirements}
+                      onChange={(e) => setCustomRequirements(e.target.value)}
+                      className="min-h-[80px]"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Preferences
+                    </label>
+                    <Textarea 
+                      placeholder="Design preferences, style, tone, or specific technologies..." 
+                      value={customPreferences}
+                      onChange={(e) => setCustomPreferences(e.target.value)}
+                      className="min-h-[80px]"
+                    />
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">Preview:</p>
+                    <div className="bg-background/30 p-3 rounded-md text-left text-sm">
+                      <pre className="whitespace-pre-wrap">{customPrompt}</pre>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
           ) : (
             <div className="space-y-4">
