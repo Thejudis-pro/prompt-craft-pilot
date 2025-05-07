@@ -11,7 +11,6 @@ import { PromptTemplate } from '../lib/promptTemplates';
 import { generatePrompt, suggestFeatures, suggestTechStack } from '../lib/generatePrompt';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 interface FormData {
   purpose: string;
   audience: string;
@@ -20,12 +19,12 @@ interface FormData {
   tech: string;
   enhancementMode: 'minimal' | 'enhanced' | 'advanced';
 }
-
 interface PromptFormProps {
   onGeneratePrompt: (prompt: string, data: FormData) => void;
 }
-
-const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
+const PromptForm: React.FC<PromptFormProps> = ({
+  onGeneratePrompt
+}) => {
   const [purpose, setPurpose] = useState('');
   const [audience, setAudience] = useState('');
   const [features, setFeatures] = useState<string[]>(['', '', '']);
@@ -41,22 +40,18 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
   const [customContext, setCustomContext] = useState('');
   const [customRequirements, setCustomRequirements] = useState('');
   const [customPreferences, setCustomPreferences] = useState('');
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
 
   // Generate smart suggestions when inputs change
   useEffect(() => {
     // Only generate suggestions if we have meaningful input
     if (purpose.trim().length > 3 && audience.trim().length > 3) {
       const suggestions = suggestFeatures(purpose, audience);
-      
+
       // Filter out suggestions that are already in the features array
-      const newSuggestions = suggestions.filter(suggestion => 
-        !features.some(feature => 
-          feature.toLowerCase().includes(suggestion.toLowerCase()) || 
-          suggestion.toLowerCase().includes(feature.toLowerCase())
-        )
-      );
-      
+      const newSuggestions = suggestions.filter(suggestion => !features.some(feature => feature.toLowerCase().includes(suggestion.toLowerCase()) || suggestion.toLowerCase().includes(feature.toLowerCase())));
       setFeatureSuggestions(newSuggestions.slice(0, 3)); // Limit to 3 suggestions
     } else {
       setFeatureSuggestions([]);
@@ -66,10 +61,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
   // Generate tech stack suggestions
   useEffect(() => {
     // Only suggest tech if we have features and purpose
-    if (
-      purpose.trim().length > 3 && 
-      features.filter(f => f.trim() !== '').length > 0 &&
-      tech.trim() === '' // Only suggest if user hasn't specified tech
+    if (purpose.trim().length > 3 && features.filter(f => f.trim() !== '').length > 0 && tech.trim() === '' // Only suggest if user hasn't specified tech
     ) {
       const suggestion = suggestTechStack(purpose, features.filter(f => f.trim() !== ''));
       setTechSuggestions(suggestion);
@@ -77,7 +69,6 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
       setTechSuggestions('');
     }
   }, [purpose, features, tech]);
-
   useEffect(() => {
     if (isCustomTemplate) {
       // When switching to custom, update the custom prompt based on the selected tab type
@@ -86,62 +77,51 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
       }
     }
   }, [customTitle, customContext, customRequirements, customPreferences, customFormType]);
-
   const handleFeatureChange = (index: number, value: string) => {
     const newFeatures = [...features];
     newFeatures[index] = value;
     setFeatures(newFeatures);
   };
-
   const handleAddFeature = () => {
     if (features.length < 5) {
       setFeatures([...features, '']);
     }
   };
-
   const handleRemoveFeature = (index: number) => {
     if (features.length > 1) {
       const newFeatures = features.filter((_, i) => i !== index);
       setFeatures(newFeatures);
     }
   };
-
   const generateGuidedCustomPrompt = () => {
     let generatedPrompt = '';
-    
     if (customTitle.trim()) {
       generatedPrompt += `${customTitle.trim()}\n\n`;
     }
-    
     if (customContext.trim()) {
       generatedPrompt += `Context: ${customContext.trim()}\n\n`;
     }
-    
     if (customRequirements.trim()) {
       generatedPrompt += `Requirements:\n${customRequirements.trim()}\n\n`;
     }
-    
     if (customPreferences.trim()) {
       generatedPrompt += `Preferences:\n${customPreferences.trim()}\n\n`;
     }
-    
     setCustomPrompt(generatedPrompt.trim());
   };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // For custom template, just use the custom prompt text
     if (isCustomTemplate) {
       if (!customPrompt.trim()) {
         toast({
           title: "Empty prompt",
           description: "Please enter your custom prompt",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
-      
       const formData: FormData = {
         purpose: customTitle || "Custom prompt",
         audience: "Custom",
@@ -150,33 +130,30 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
         tech: "",
         enhancementMode
       };
-      
       onGeneratePrompt(customPrompt, formData);
       return;
     }
-    
+
     // Validate form
     if (!purpose.trim() || !audience.trim() || !design.trim()) {
       toast({
         title: "Missing information",
         description: "Please fill out all required fields",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-    
+
     // Filter out empty features before generating the prompt
     const filteredFeatures = features.filter(feature => feature.trim() !== '');
-    
     if (filteredFeatures.length === 0) {
       toast({
         title: "Missing features",
         description: "Please add at least one feature",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-    
     const formData: FormData = {
       purpose,
       audience,
@@ -185,7 +162,6 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
       tech,
       enhancementMode
     };
-    
     try {
       const prompt = generatePrompt(formData);
       onGeneratePrompt(prompt, formData);
@@ -194,11 +170,10 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
       toast({
         title: "Error",
         description: "There was a problem generating your prompt",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const handleSelectPreset = (template: PromptTemplate) => {
     // Check if custom template is selected
     if (template.id === "custom") {
@@ -210,17 +185,17 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
       setCustomPreferences("");
       return;
     }
-    
+
     // Reset custom template flag if another template is selected
     setIsCustomTemplate(false);
-    
+
     // Extract information from template to prefill form
     const purposeMatch = template.template.match(/\[main purpose\]/);
     const audienceMatch = template.template.match(/\[target audience\]/);
     const designMatch = template.template.match(/\[design preference\]/);
-    
+
     // Set form values based on template type
-    switch(template.id) {
+    switch (template.id) {
       case "saas":
         setPurpose("a SaaS application");
         setAudience("business professionals and teams");
@@ -265,7 +240,6 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
         setTech("");
     }
   };
-
   const handleSelectSuggestion = (suggestion: string) => {
     // Find an empty feature slot or replace the last one
     const emptyIndex = features.findIndex(feature => feature.trim() === '');
@@ -281,25 +255,21 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
       setFeatures(newFeatures);
     }
   };
-
   const handleSelectTechSuggestion = () => {
     if (techSuggestions) {
       setTech(techSuggestions);
       setTechSuggestions('');
     }
   };
-
-  return (
-    <Card className="glass-card w-full">
+  return <Card className="glass-card w-full">
       <CardContent className="pt-6">
         <form onSubmit={handleSubmit} className="space-y-6 text-center">
           <PresetSelector onSelectPreset={handleSelectPreset} />
           
           <PromptTuningModes value={enhancementMode} onChange={setEnhancementMode} />
           
-          {isCustomTemplate ? (
-            <div className="space-y-4">
-              <Tabs value={customFormType} onValueChange={(v) => setCustomFormType(v as 'freeform' | 'guided')} className="w-full">
+          {isCustomTemplate ? <div className="space-y-4">
+              <Tabs value={customFormType} onValueChange={v => setCustomFormType(v as 'freeform' | 'guided')} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-4">
                   <TabsTrigger value="freeform" className="flex items-center gap-2">
                     <Text className="h-4 w-4" />
@@ -316,12 +286,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
                     <label className="block text-sm font-medium mb-2">
                       Your Custom Prompt
                     </label>
-                    <Textarea 
-                      placeholder="Write your custom prompt here... Be as specific as possible about what you want to create." 
-                      value={customPrompt}
-                      onChange={(e) => setCustomPrompt(e.target.value)}
-                      className="min-h-[250px]"
-                    />
+                    <Textarea placeholder="Write your custom prompt here... Be as specific as possible about what you want to create." value={customPrompt} onChange={e => setCustomPrompt(e.target.value)} className="min-h-[250px]" />
                   </div>
                 </TabsContent>
                 
@@ -330,47 +295,28 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
                     <label className="block text-sm font-medium mb-2">
                       Title / Subject
                     </label>
-                    <Input 
-                      placeholder="What are you trying to build or accomplish?" 
-                      value={customTitle}
-                      onChange={(e) => setCustomTitle(e.target.value)}
-                    />
+                    <Input placeholder="What are you trying to build or accomplish?" value={customTitle} onChange={e => setCustomTitle(e.target.value)} />
                   </div>
                   
                   <div>
                     <label className="block text-sm font-medium mb-2">
                       Context
                     </label>
-                    <Textarea 
-                      placeholder="Background information, current situation, or constraints..." 
-                      value={customContext}
-                      onChange={(e) => setCustomContext(e.target.value)}
-                      className="min-h-[80px]"
-                    />
+                    <Textarea placeholder="Background information, current situation, or constraints..." value={customContext} onChange={e => setCustomContext(e.target.value)} className="min-h-[80px]" />
                   </div>
                   
                   <div>
                     <label className="block text-sm font-medium mb-2">
                       Requirements
                     </label>
-                    <Textarea 
-                      placeholder="Specific needs, must-haves, or key functionalities..." 
-                      value={customRequirements}
-                      onChange={(e) => setCustomRequirements(e.target.value)}
-                      className="min-h-[80px]"
-                    />
+                    <Textarea placeholder="Specific needs, must-haves, or key functionalities..." value={customRequirements} onChange={e => setCustomRequirements(e.target.value)} className="min-h-[80px]" />
                   </div>
                   
                   <div>
                     <label className="block text-sm font-medium mb-2">
                       Preferences
                     </label>
-                    <Textarea 
-                      placeholder="Design preferences, style, tone, or specific technologies..." 
-                      value={customPreferences}
-                      onChange={(e) => setCustomPreferences(e.target.value)}
-                      className="min-h-[80px]"
-                    />
+                    <Textarea placeholder="Design preferences, style, tone, or specific technologies..." value={customPreferences} onChange={e => setCustomPreferences(e.target.value)} className="min-h-[80px]" />
                   </div>
                   
                   <div>
@@ -381,77 +327,32 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
                   </div>
                 </TabsContent>
               </Tabs>
-            </div>
-          ) : (
-            <div className="space-y-4">
+            </div> : <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2">
                   Project Purpose
                 </label>
-                <Input 
-                  placeholder="What are you building?" 
-                  value={purpose}
-                  onChange={(e) => setPurpose(e.target.value)}
-                  required
-                  className={purpose ? "" : "placeholder:text-muted-foreground/50"}
-                />
+                <Input placeholder="What are you building?" value={purpose} onChange={e => setPurpose(e.target.value)} required className={purpose ? "" : "placeholder:text-muted-foreground/50"} />
               </div>
               
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Target Audience
-                </label>
-                <Input 
-                  placeholder="Who will use your application?" 
-                  value={audience}
-                  onChange={(e) => setAudience(e.target.value)}
-                  required
-                  className={audience ? "" : "placeholder:text-muted-foreground/50"}
-                />
-              </div>
+              
               
               <div>
                 <label className="block text-sm font-medium mb-2">
                   Core Features (3-5)
                 </label>
                 <div className="space-y-3">
-                  {features.map((feature, index) => (
-                    <div key={index} className="flex gap-2">
-                      <Input
-                        placeholder={`Feature ${index + 1}`}
-                        value={feature}
-                        onChange={(e) => handleFeatureChange(index, e.target.value)}
-                        required={index < 3}
-                        className={feature ? "" : "placeholder:text-muted-foreground/50"}
-                      />
-                      {index >= 3 && (
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => handleRemoveFeature(index)}
-                        >
+                  {features.map((feature, index) => <div key={index} className="flex gap-2">
+                      <Input placeholder={`Feature ${index + 1}`} value={feature} onChange={e => handleFeatureChange(index, e.target.value)} required={index < 3} className={feature ? "" : "placeholder:text-muted-foreground/50"} />
+                      {index >= 3 && <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveFeature(index)}>
                           ✕
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  {features.length < 5 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleAddFeature}
-                      className="w-full"
-                    >
+                        </Button>}
+                    </div>)}
+                  {features.length < 5 && <Button type="button" variant="outline" size="sm" onClick={handleAddFeature} className="w-full">
                       Add Feature
-                    </Button>
-                  )}
+                    </Button>}
                   
-                  <SmartSuggestions 
-                    suggestions={featureSuggestions} 
-                    onSelectSuggestion={handleSelectSuggestion} 
-                  />
+                  <SmartSuggestions suggestions={featureSuggestions} onSelectSuggestion={handleSelectSuggestion} />
                 </div>
               </div>
               
@@ -459,53 +360,28 @@ const PromptForm: React.FC<PromptFormProps> = ({ onGeneratePrompt }) => {
                 <label className="block text-sm font-medium mb-2">
                   Style or Design Preferences
                 </label>
-                <Textarea 
-                  placeholder="Describe your desired look and feel" 
-                  value={design}
-                  onChange={(e) => setDesign(e.target.value)}
-                  required
-                  className={`min-h-[80px] ${design ? "" : "placeholder:text-muted-foreground/50"}`}
-                />
+                <Textarea placeholder="Describe your desired look and feel" value={design} onChange={e => setDesign(e.target.value)} required className={`min-h-[80px] ${design ? "" : "placeholder:text-muted-foreground/50"}`} />
               </div>
               
               <div>
                 <label className="block text-sm font-medium mb-2">
                   Tech Stack or AI Tool (Optional)
                 </label>
-                <Input 
-                  placeholder="E.g., React, Next.js, or specific AI tools" 
-                  value={tech}
-                  onChange={(e) => setTech(e.target.value)}
-                  className={tech ? "" : "placeholder:text-muted-foreground/50"}
-                />
-                {techSuggestions && (
-                  <div className="mt-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleSelectTechSuggestion}
-                      className="text-xs py-1 px-2 h-auto bg-white/5 hover:bg-white/10 flex gap-1 items-center"
-                    >
+                <Input placeholder="E.g., React, Next.js, or specific AI tools" value={tech} onChange={e => setTech(e.target.value)} className={tech ? "" : "placeholder:text-muted-foreground/50"} />
+                {techSuggestions && <div className="mt-2">
+                    <Button type="button" variant="outline" size="sm" onClick={handleSelectTechSuggestion} className="text-xs py-1 px-2 h-auto bg-white/5 hover:bg-white/10 flex gap-1 items-center">
                       <Lightbulb className="h-3 w-3" />
                       <span>Suggested: {techSuggestions}</span>
                     </Button>
-                  </div>
-                )}
+                  </div>}
               </div>
-            </div>
-          )}
+            </div>}
           
-          <Button 
-            type="submit" 
-            className="w-full text-white py-5 hover:bg-primary/90"
-          >
+          <Button type="submit" className="w-full text-white py-5 hover:bg-primary/90">
             Generate Prompt
           </Button>
         </form>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default PromptForm;
